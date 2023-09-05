@@ -1,0 +1,20 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+requests = "*"
+python-dotenv = "*"
+requests-ratelimiter = "*"
+tqdm = "*"
+python-slugify = "*"
+pyyaml = "*"
+toml = "*"
+json5 = "*"
+jsonschema = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.9"
