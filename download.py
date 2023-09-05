@@ -44,7 +44,7 @@ for file in tqdm.tqdm(glob.glob("files/*.txt"), position=0):
     r = session.get(schema_urls[schema_slug])
     try:
         schema = json5.loads(r.text)
-    except ValueError:
+    except (RecursionError, ValueError):
         sys.stderr.write("Schema for " + schema_names[schema_slug] + " invalid.\n")
         continue
 
@@ -69,7 +69,7 @@ for file in tqdm.tqdm(glob.glob("files/*.txt"), position=0):
                 try:
                     doc_obj = load_fn(doc)
                     break
-                except (ValueError, yaml.YAMLError, toml.decoder.TomlDecodeError):
+                except (ValueError, RecursionError, yaml.YAMLError, toml.decoder.TomlDecodeError):
                     continue
 
             # If we didn't get a valid dictionary, then stop
@@ -79,7 +79,7 @@ for file in tqdm.tqdm(glob.glob("files/*.txt"), position=0):
             # Validate the document and skip if invalid
             try:
                 jsonschema.validate(instance=doc_obj, schema=schema)
-            except (jsonschema.exceptions.ValidationError, TypeError):
+            except (jsonschema.exceptions.ValidationError, jsonschema.exceptions.SchemaError, RecursionError, TypeError):
                 continue
 
             json.dump(doc_obj, out, default=json_serial)
