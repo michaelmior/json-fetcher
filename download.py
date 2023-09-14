@@ -90,7 +90,13 @@ for file in tqdm.tqdm(glob.glob("files/*.txt"), position=0):
                 try:
                     doc_obj = load_fn(doc)
                     break
-                except (ValueError, RecursionError, yaml.YAMLError, toml.decoder.TomlDecodeError, IndexError):
+                except (
+                    ValueError,
+                    RecursionError,
+                    yaml.YAMLError,
+                    toml.decoder.TomlDecodeError,
+                    IndexError,
+                ):
                     # IndexError sometimes happens with TOML
                     continue
 
@@ -101,7 +107,14 @@ for file in tqdm.tqdm(glob.glob("files/*.txt"), position=0):
             # Validate the document and skip if invalid
             try:
                 jsonschema.validate(instance=doc_obj, schema=schema)
-            except (jsonschema.exceptions.ValidationError, jsonschema.exceptions.SchemaError, referencing.exceptions.Unresolvable, AttributeError, RecursionError, TypeError):
+            except (
+                jsonschema.exceptions.ValidationError,
+                jsonschema.exceptions.SchemaError,
+                referencing.exceptions.Unresolvable,
+                AttributeError,
+                RecursionError,
+                TypeError,
+            ):
                 continue
 
             json.dump(doc_obj, out, default=json_serial)
