@@ -4,9 +4,11 @@ import json
 import os
 import sys
 import time
+import urllib.error
 
 import json5
 import jsonschema
+import referencing
 import requests
 import requests_ratelimiter
 import slugify
@@ -40,13 +42,32 @@ session.mount("https://", adapter)
 for file in tqdm.tqdm(glob.glob("files/*.txt"), position=0):
     schema_slug = os.path.basename(file).removesuffix(".txt")
 
-    # Try to download and parse the schema
-    r = session.get(schema_urls[schema_slug])
-    try:
-        schema = json5.loads(r.text)
-    except (RecursionError, ValueError):
-        sys.stderr.write("Schema for " + schema_names[schema_slug] + " invalid.\n")
-        continue
+    # Check if the schema already exists
+    outschema = "schemas/" + schema_slug + ".json"
+    if os.path.exists(outschema):
+        with open(outschema, "r") as f:
+            schema = json5.load(f)
+    else:
+        # Try to download the schema
+        try:
+            r = session.get(schema_urls[schema_slug], timeout=10)
+
+            # Skip if we failed to retrieve
+            if r.status_code != requests.codes.ok:
+                continue
+        except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout):
+            # Skip if we failed to connect
+            continue
+
+        # Then try parsing
+        try:
+            schema = json5.loads(r.text)
+        except (RecursionError, ValueError):
+            sys.stderr.write("Schema for " + schema_names[schema_slug] + " invalid.\n")
+            continue
+
+        with open(outschema, "w") as out:
+            json.dump(schema, out, default=json_serial)
 
     # Skip if the output already exists
     outfile = "jsons/" + schema_slug + ".json"
@@ -69,7 +90,8 @@ for file in tqdm.tqdm(glob.glob("files/*.txt"), position=0):
                 try:
                     doc_obj = load_fn(doc)
                     break
-                except (ValueError, RecursionError, yaml.YAMLError, toml.decoder.TomlDecodeError):
+                except (ValueError, RecursionError, yaml.YAMLError, toml.decoder.TomlDecodeError, IndexError):
+                    # IndexError sometimes happens with TOML
                     continue
 
             # If we didn't get a valid dictionary, then stop
@@ -79,7 +101,7 @@ for file in tqdm.tqdm(glob.glob("files/*.txt"), position=0):
             # Validate the document and skip if invalid
             try:
                 jsonschema.validate(instance=doc_obj, schema=schema)
-            except (jsonschema.exceptions.ValidationError, jsonschema.exceptions.SchemaError, RecursionError, TypeError):
+            except (jsonschema.exceptions.ValidationError, jsonschema.exceptions.SchemaError, referencing.exceptions.Unresolvable, AttributeError, RecursionError, TypeError):
                 continue
 
             json.dump(doc_obj, out, default=json_serial)
