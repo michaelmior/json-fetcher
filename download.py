@@ -53,7 +53,11 @@ for file in tqdm.tqdm(glob.glob("files/*.txt"), position=0):
             # Skip if we failed to retrieve
             if r.status_code != requests.codes.ok:
                 continue
-        except (KeyError, requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout):
+        except (
+            KeyError,
+            requests.exceptions.ConnectionError,
+            requests.exceptions.ReadTimeout,
+        ):
             # Skip if we failed to find the schema or connect
             continue
 
