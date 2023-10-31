@@ -1,5 +1,5 @@
 # json-fetcher
-
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/michaelmior/json-fetcher/main.svg)](https://results.pre-commit.ci/latest/github/michaelmior/json-fetcher/main)
 1. Collect a list of of JSON documents using the GitHub search API.
 
    pipenv run python search.py
