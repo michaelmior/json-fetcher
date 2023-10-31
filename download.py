@@ -53,8 +53,8 @@ for file in tqdm.tqdm(glob.glob("files/*.txt"), position=0):
             # Skip if we failed to retrieve
             if r.status_code != requests.codes.ok:
                 continue
-        except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout):
-            # Skip if we failed to connect
+        except (KeyError, requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout):
+            # Skip if we failed to find the schema or connect
             continue
 
         # Then try parsing
@@ -80,7 +80,7 @@ for file in tqdm.tqdm(glob.glob("files/*.txt"), position=0):
             postfix={"schema": schema_names[schema_slug]},
         ):
             # Download the document
-            doc = session.get(line.strip()).text
+            doc = session.get(line.strip(), timeout=10).text
 
             # Try loading the document using JSON5, YAML, and TOML
             doc_obj = None
