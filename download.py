@@ -119,5 +119,6 @@ for file in tqdm.tqdm(glob.glob("files/*.txt"), position=0):
             ):
                 continue
 
+            # Output the document to a JSON file
             json.dump(doc_obj, out, default=json_serial)
             out.write("\n")
