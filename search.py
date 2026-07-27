@@ -1,13 +1,13 @@
-import math
 import json
+import math
 import os
 import sys
 
-from dotenv import load_dotenv
 import requests
 import requests_ratelimiter
 import slugify
 import tqdm
+from dotenv import load_dotenv
 
 MAX_FILES = 1000
 PER_PAGE = 100
